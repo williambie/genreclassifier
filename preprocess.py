@@ -1,6 +1,8 @@
 import pandas as pd
 import json
 import re
+import nltk
+from nltk.tokenize import word_tokenize
 
 # Load the data from the json file
 with open('movies.json', 'r') as file:
@@ -10,7 +12,8 @@ with open('movies.json', 'r') as file:
 def preprocess_text(text):
     text = text.lower()
     text = re.sub(r'[^a-z0-9\s]', '', text)
-    return text
+    tokens = word_tokenize(text)
+    return tokens
 
 # Preprocess the movie plot and genre names and remove the title
 for movie in movies:
