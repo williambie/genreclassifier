@@ -37,7 +37,7 @@ def main():
     total_pages = get_total_pages()
 
     # Limit to 10 pages as the comment says 500, but the code does 10
-    max_pages = min(total_pages, 20)
+    max_pages = min(total_pages, 600)
 
     all_movies = []
 
