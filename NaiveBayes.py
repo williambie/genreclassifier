@@ -17,6 +17,7 @@ data = pd.read_pickle('preprocessed_data.pkl')
 # Since data is already tokenized, join the tokens for TF-IDF vectorization
 data['description'] = data['description'].apply(lambda x: ' '.join(x))
 
+# Best result yet: {"Accuracy": 0.40492957746478875, "Max Features": 4500, "Ngram Range": 1, "Random State": 71}
 # Set your parameter lists
 max_feature_list = [100, 200, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 10000, 12500, 15000, 17500, 20000, 22500, 25000, 30000, 32500, 35000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 125000, 150000, 175000, 200000]
 ngram_list = [1, 2, 3]
@@ -54,5 +55,5 @@ with open('all_results.json', 'w') as f:
                 f.write(json.dumps(results) + '\n')
 
                 # Optionally, print out the results to the console as well
-                # print(f"Results written for Max Features: {max_feats}, Ngram Range: {ngram}, Random State: {rand_state}")
+                print(f"Results written for Max Features: {max_feats}, Ngram Range: {ngram}, Random State: {rand_state}")
 

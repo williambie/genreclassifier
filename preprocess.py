@@ -22,7 +22,7 @@ for movie in movies:
 # Convert the data to a pandas DataFrame
 data = pd.DataFrame(movies)
 
-data.to_pickle('preproccesed_data.pkl')
+data.to_pickle('preprocessed_data.pkl')
 
 # Print out the first 10 lines to examine the data
 print(data.head(10))
