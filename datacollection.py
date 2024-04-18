@@ -12,19 +12,16 @@ def get_total_pages():
         return response.json().get('total_pages')
     return 0
 
-
 def get_movies_from_page(page_number):
     response = requests.get(f"{MOVIE_LIST_ENDPOINT}&page={page_number}")
     if response.status_code == 200:
         movies_data = response.json().get('results', [])
-        # Filter movies and include only the first genre_id if available
         filtered_movies = [
             {
                 'description': movie.get('overview'),
-                'genres': [movie.get('genre_ids')[0]] if movie.get('genre_ids') else [],
+                'genres': movie.get('genre_ids', [])
             }
-            for movie in movies_data
-            if movie.get('overview') and movie.get('genre_ids')
+            for movie in movies_data if movie.get('overview') and movie.get('genre_ids')
         ]
         return filtered_movies
     return []
@@ -37,7 +34,7 @@ def main():
     total_pages = get_total_pages()
 
     # Limit to 10 pages as the comment says 500, but the code does 10
-    max_pages = min(total_pages, 600)
+    max_pages = min(total_pages, 10)
 
     all_movies = []
 
@@ -72,18 +69,11 @@ genre_id_to_name = {
     37: "Western",
 }
 
-
 def replace_genre_ids_with_names(movie_data):
     for movie in movie_data:
-        # Check if 'genres' exists and is not empty
         if 'genres' in movie and movie['genres']:
-            try:
-                # Directly assign the genre name string instead of a list
-                movie['genre'] = genre_id_to_name.get(movie['genres'][0])
-            except KeyError as e:
-                print(f"Warning: Genre ID {e} not found in mapping. Skipping.")
-            del movie['genres']  # Remove the original 'genres' field
-
+            movie['genres'] = [genre_id_to_name.get(genre_id, "Unknown Genre") for genre_id in movie['genres']]
+            
 try:
     file_path = 'movies.json'
     with open(file_path, 'r') as file:
