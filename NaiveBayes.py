@@ -1,46 +1,106 @@
-import pandas as pd
-import json
-from sklearn.model_selection import train_test_split
+import re
+import nltk 
 from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+import pandas as pd
+from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, classification_report
-from sklearn.pipeline import make_pipeline
-import warnings
-from sklearn.exceptions import UndefinedMetricWarning
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, RocCurveDisplay
+from sklearn.preprocessing import label_binarize
+import seaborn as sns
+import matplotlib.pyplot as plt
+from joblib import dump
 
-# Suppress UndefinedMetricWarning
-warnings.filterwarnings(action='ignore', category=UndefinedMetricWarning)
+nltk.download('wordnet')
+nltk.download('stopwords')
 
-# Load the preprocessed data
-data = pd.read_pickle('preprocessed_data.pkl')
+# Load dataset
+data = pd.read_json('movies.json')
 
-# Since data is already tokenized, join the tokens for TF-IDF vectorization
-data['description'] = data['description'].apply(lambda x: ' '.join(x))
 
-# Initialize the Vectorizer with current parameters
-vectorizer = TfidfVectorizer(stop_words='english', max_features=5000, ngram_range=(1, 3))
+# Select specific genres
+selected_genres = ['Action', 'Drama']
+data = data[data['genre'].isin(selected_genres)]
 
-# Split data into features and target
-X = data['description']
-y = data['genre']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=71)
+def preprocess_text(text):
+    """
+    Function to preprocess text by lowercasing, removing non-alphanumeric characters,
+    removing stopwords, and lemmatizing.
+    """
+    # Lowercase the text
+    text = text.lower()
+    
+    # Remove non-alphanumeric characters
+    text = re.sub(r'\W', ' ', text)
+    
+    # Tokenize text
+    tokens = text.split()
+    
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    tokens = [word for word in tokens if word not in stop_words]
+    
+    # Lemmatization
+    lemmatizer = WordNetLemmatizer()
+    tokens = [lemmatizer.lemmatize(word) for word in tokens]
+    
+    # Join words back to string
+    return ' '.join(tokens)
 
-# Create and train the model
-model = make_pipeline(vectorizer, MultinomialNB())
-model.fit(X_train, y_train)
 
-# Predict on the test set and evaluate
-y_pred = model.predict(X_test)
+# Preprocessing descriptions
+data['processed_description'] = data['description'].apply(preprocess_text)
 
-# Calculate metrics
-accuracy = accuracy_score(y_test, y_pred)
-f1_scores = f1_score(y_test, y_pred, average=None)
-recalls = recall_score(y_test, y_pred, average=None)
-precisions = precision_score(y_test, y_pred, average=None)
+# Splitting the data
+X_train, X_test, y_train, y_test = train_test_split(data['processed_description'], data['genre'], test_size=0.3, random_state=42)
 
-# Print accuracy for the overall model
-print("Overall Accuracy:", accuracy)
+# Vectorization
+vectorizer = TfidfVectorizer(ngram_range=(1, 2))
+X_train_vectors = vectorizer.fit_transform(X_train)
+X_test_vectors = vectorizer.transform(X_test)
 
-# Print metrics for each genre
-print("\nMetrics for each genre:")
-print(classification_report(y_test, y_pred, target_names=model.classes_))
+# Model
+model = MultinomialNB()
+param_grid = {'alpha': [0.01, 0.1, 0.5, 1, 10]}
+grid_search = RandomizedSearchCV(model, param_distributions=param_grid, n_iter=4, cv=5, random_state=42)
+grid_search.fit(X_train_vectors, y_train)
+best_model = grid_search.best_estimator_
+
+# Save the vectorizer and the best model
+dump(vectorizer, 'tfidf_vectorizer.joblib')
+dump(best_model, 'best_model.joblib')
+
+y_pred = best_model.predict(X_test_vectors)
+y_prob = best_model.predict_proba(X_test_vectors)
+
+# Predictions and Evaluation using the best model
+y_pred = best_model.predict(X_test_vectors)
+print("Best Model:", best_model)
+print("Accuracy:", best_model.score(X_test_vectors, y_test))
+print(classification_report(y_test, y_pred))
+
+# Confusion Matrix
+cm = confusion_matrix(y_test, y_pred, labels=best_model.classes_)
+sns.heatmap(cm, annot=True, fmt='d', xticklabels=best_model.classes_, yticklabels=best_model.classes_)
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.title('Confusion Matrix')
+plt.show()
+
+# Classification Report Visualization
+report = pd.DataFrame(classification_report(y_test, y_pred, output_dict=True)).transpose()
+report.drop(['accuracy'], inplace=True)
+report['support'] = report['support'].apply(int)
+fig, ax = plt.subplots(figsize=(8, 5))
+report[['precision', 'recall', 'f1-score']].plot(kind='barh', ax=ax)
+ax.set_title('Classification Report')
+ax.set_xlim([0, 1])
+plt.show()
+
+# ROC Curve (assuming binary classification for simplification)
+if len(best_model.classes_) == 2:
+    y_test_bin = label_binarize(y_test, classes=best_model.classes_)
+    fpr, tpr, _ = roc_curve(y_test_bin, y_prob[:, 1])
+    roc_auc = auc(fpr, tpr)
+    RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=roc_auc, estimator_name='Example').plot()
