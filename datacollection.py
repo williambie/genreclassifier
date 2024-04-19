@@ -1,8 +1,11 @@
 import json
 import requests
+from dotenv import load_dotenv
+import os
 
-# Constants
-API_KEY = '018ff1d3840698b0ab96703e3d1ee53d' # Dont mind this key, it's a dummy key :)
+load_dotenv()
+
+API_KEY = os.getenv("API_KEY")
 URL_BASE = "https://api.themoviedb.org/3/"
 MOVIE_LIST_ENDPOINT = f"{URL_BASE}discover/movie?api_key={API_KEY}"
 
@@ -17,7 +20,6 @@ def get_movies_from_page(page_number):
     response = requests.get(f"{MOVIE_LIST_ENDPOINT}&page={page_number}")
     if response.status_code == 200:
         movies_data = response.json().get('results', [])
-        # Filter movies and include only the first genre_id if available
         filtered_movies = [
             {
                 'description': movie.get('overview'),
@@ -45,8 +47,8 @@ def main():
         print(f"Fetching page {page} of {max_pages}...")
         all_movies.extend(get_movies_from_page(page))
 
-    save_to_json(all_movies, 'movies.json')
-    print("Saved to movies.json")
+    save_to_json(all_movies, 'test.json')
+    print("Saved to test.json")
 
 main()
 
@@ -75,17 +77,15 @@ genre_id_to_name = {
 
 def replace_genre_ids_with_names(movie_data):
     for movie in movie_data:
-        # Check if 'genres' exists and is not empty
         if 'genres' in movie and movie['genres']:
             try:
-                # Directly assign the genre name string instead of a list
                 movie['genre'] = genre_id_to_name.get(movie['genres'][0])
             except KeyError as e:
                 print(f"Warning: Genre ID {e} not found in mapping. Skipping.")
-            del movie['genres']  # Remove the original 'genres' field
+            del movie['genres']
 
 try:
-    file_path = 'movies.json'
+    file_path = 'test.json'
     with open(file_path, 'r') as file:
         movies_data = json.load(file)
 except FileNotFoundError:
@@ -95,7 +95,7 @@ except FileNotFoundError:
 replace_genre_ids_with_names(movies_data)
 
 try:
-    output_file_path = 'movies.json'
+    output_file_path = 'test.json'
     with open(output_file_path, 'w') as file:
         json.dump(movies_data, file, indent=2)
 except IOError as e:

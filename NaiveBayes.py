@@ -6,11 +6,9 @@ from nltk.corpus import stopwords
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, RocCurveDisplay
-from sklearn.preprocessing import label_binarize
+from sklearn.metrics import confusion_matrix, classification_report
 import seaborn as sns
 import matplotlib.pyplot as plt
-from joblib import dump
 
 nltk.download('wordnet')
 nltk.download('stopwords')
@@ -20,7 +18,7 @@ data = pd.read_json('movies.json')
 
 
 # Select specific genres
-selected_genres = ['Action', 'Drama']
+selected_genres = ['Action', 'Drama', 'Comedy', 'Horror', 'Animation', 'Adventure', 'Thriller', 'Romance', 'Crime', 'Science Fiction', 'Fantasy', 'Mystery', 'Music', 'War', 'History', 'Documentary', 'Western', 'TV Movie']
 data = data[data['genre'].isin(selected_genres)]
 
 def preprocess_text(text):
@@ -56,20 +54,16 @@ data['processed_description'] = data['description'].apply(preprocess_text)
 X_train, X_test, y_train, y_test = train_test_split(data['processed_description'], data['genre'], test_size=0.3, random_state=42)
 
 # Vectorization
-vectorizer = TfidfVectorizer(ngram_range=(1, 2))
+vectorizer = TfidfVectorizer(ngram_range=(1, 1))
 X_train_vectors = vectorizer.fit_transform(X_train)
 X_test_vectors = vectorizer.transform(X_test)
 
 # Model
 model = MultinomialNB()
-param_grid = {'alpha': [0.01, 0.1, 0.5, 1, 10]}
-grid_search = RandomizedSearchCV(model, param_distributions=param_grid, n_iter=4, cv=5, random_state=42)
+param_grid = {'alpha': [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]}
+grid_search = RandomizedSearchCV(model, param_distributions=param_grid, n_iter=12, cv=5, random_state=42)
 grid_search.fit(X_train_vectors, y_train)
 best_model = grid_search.best_estimator_
-
-# Save the vectorizer and the best model
-dump(vectorizer, 'tfidf_vectorizer.joblib')
-dump(best_model, 'best_model.joblib')
 
 y_pred = best_model.predict(X_test_vectors)
 y_prob = best_model.predict_proba(X_test_vectors)
@@ -97,10 +91,3 @@ report[['precision', 'recall', 'f1-score']].plot(kind='barh', ax=ax)
 ax.set_title('Classification Report')
 ax.set_xlim([0, 1])
 plt.show()
-
-# ROC Curve (assuming binary classification for simplification)
-if len(best_model.classes_) == 2:
-    y_test_bin = label_binarize(y_test, classes=best_model.classes_)
-    fpr, tpr, _ = roc_curve(y_test_bin, y_prob[:, 1])
-    roc_auc = auc(fpr, tpr)
-    RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=roc_auc, estimator_name='Example').plot()
