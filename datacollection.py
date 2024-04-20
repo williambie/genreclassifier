@@ -5,17 +5,19 @@ import os
 
 load_dotenv()
 
+# Define the endpoint and API key for The Movie Database API
 API_KEY = os.getenv("API_KEY")
 URL_BASE = "https://api.themoviedb.org/3/"
 MOVIE_LIST_ENDPOINT = f"{URL_BASE}discover/movie?api_key={API_KEY}"
 
+# Hva gjør egentlig denne?
 def get_total_pages():
     response = requests.get(MOVIE_LIST_ENDPOINT)
     if response.status_code == 200:
         return response.json().get('total_pages')
     return 0
 
-
+# Get all movies from a specific page
 def get_movies_from_page(page_number):
     response = requests.get(f"{MOVIE_LIST_ENDPOINT}&page={page_number}")
     if response.status_code == 200:
@@ -31,10 +33,12 @@ def get_movies_from_page(page_number):
         return filtered_movies
     return []
 
+# Saving the data to a JSON file
 def save_to_json(data, filename):
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
 
+# Main function to fetch and save the data
 def main():
     total_pages = get_total_pages()
 
@@ -52,6 +56,7 @@ def main():
 
 main()
 
+# Mapping genre IDs to genre names
 genre_id_to_name = {
     28: "Action",
     12: "Adventure",
@@ -74,7 +79,7 @@ genre_id_to_name = {
     37: "Western",
 }
 
-
+# Function for replacing genre IDs with genre names
 def replace_genre_ids_with_names(movie_data):
     for movie in movie_data:
         if 'genres' in movie and movie['genres']:
@@ -84,6 +89,7 @@ def replace_genre_ids_with_names(movie_data):
                 print(f"Warning: Genre ID {e} not found in mapping. Skipping.")
             del movie['genres']
 
+# Hva gjør denne?
 try:
     file_path = 'test.json'
     with open(file_path, 'r') as file:
@@ -92,8 +98,10 @@ except FileNotFoundError:
     print("Error: The specified JSON file was not found.")
     exit(1)
 
+# Kan denne flyttes opp?
 replace_genre_ids_with_names(movies_data)
 
+#Hva gjør denne?
 try:
     output_file_path = 'test.json'
     with open(output_file_path, 'w') as file:

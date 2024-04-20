@@ -1,10 +1,10 @@
 import json
 
-# Load JSON data
+# Load the movies from the JSON file
 with open('movies.json', 'r') as file:
     movies = json.load(file)
 
-# Use a set to remove duplicates and check for empty fields
+# Use a set to remove duplicates and check for null fields in the dataset
 seen_descriptions = set()
 unique_movies = []
 for movie in movies:

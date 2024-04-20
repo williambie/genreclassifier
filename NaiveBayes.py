@@ -16,12 +16,31 @@ nltk.download('stopwords')
 # Load dataset
 data = pd.read_json('movies.json')
 
+# Define which genres to include
 
-# Select specific genres
+# We have ran the code with 2, 3, 4, 5 and all 19 genres.
 selected_genres = ['Action', 
-                   'Drama']
+                   'Drama',
+                   'Comedy',
+                   'Horror',
+                   'Animation',
+                   'Adventure',
+                   'Thriller',
+                   'Romance',
+                   'Crime',
+                   'Science Fiction',
+                   'Family',
+                   'Fantasy',
+                   'Mystery',
+                   'Documentary',
+                   'Western',
+                   'War',
+                   'Music',
+                   'History',
+                   'TV Movie']
 data = data[data['genre'].isin(selected_genres)]
 
+# Kanskje flytte kommentaren til over funskjonen for kosistens?
 def preprocess_text(text):
     """
     Function to preprocess text by lowercasing, removing non-alphanumeric characters,
@@ -59,7 +78,7 @@ vectorizer = TfidfVectorizer(ngram_range=(1, 1))
 X_train_vectors = vectorizer.fit_transform(X_train)
 X_test_vectors = vectorizer.transform(X_test)
 
-# Model
+# Model (Kanskje utdype denne?)
 model = MultinomialNB()
 param_grid = {'alpha': [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]}
 grid_search = RandomizedSearchCV(model, param_distributions=param_grid, n_iter=12, cv=5, random_state=42)
@@ -75,9 +94,9 @@ print("Best Model:", best_model)
 print("Accuracy:", best_model.score(X_test_vectors, y_test))
 print(classification_report(y_test, y_pred))
 
-# Confusion Matrix
+# Creating the confusion Matrix
 cm = confusion_matrix(y_test, y_pred, labels=best_model.classes_)
-sns.heatmap(cm, annot=True, fmt='d', xticklabels=best_model.classes_, yticklabels=best_model.classes_)
+sns.heatmap(cm, annot=True, cmap='Blues', fmt='d', xticklabels=best_model.classes_, yticklabels=best_model.classes_)
 plt.xlabel('Predicted')
 plt.ylabel('True')
 plt.title('Confusion Matrix')
