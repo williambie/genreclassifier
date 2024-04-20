@@ -18,7 +18,8 @@ data = pd.read_json('movies.json')
 
 
 # Select specific genres
-selected_genres = ['Action', 'Drama', 'Comedy', 'Horror', 'Animation', 'Adventure', 'Thriller', 'Romance', 'Crime', 'Science Fiction', 'Fantasy', 'Mystery', 'Music', 'War', 'History', 'Documentary', 'Western', 'TV Movie']
+selected_genres = ['Action', 
+                   'Drama']
 data = data[data['genre'].isin(selected_genres)]
 
 def preprocess_text(text):
