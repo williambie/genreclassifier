@@ -80,7 +80,7 @@ best_model = None
 best_val_loss = float('inf')
 
 # Training and Validation
-for epoch in range(5):
+for epoch in range(3):
     model.train()
     total_loss = 0
     for batch in tqdm(train_loader, desc=f"Training Epoch {epoch+1}"):
@@ -146,7 +146,7 @@ plt.show()
 
 # Confusion Matrix with genre names
 conf_mat = confusion_matrix(actuals, predictions)
-sns.heatmap(conf_mat, annot=True, fmt='d', xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_)
+sns.heatmap(conf_mat, annot=True, fmt='d', xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_, cmap='Blues')
 plt.xlabel('Predicted')
 plt.ylabel('True')
 plt.title('Confusion Matrix')
