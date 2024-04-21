@@ -139,9 +139,6 @@ report[['precision', 'recall', 'f1-score']].plot(kind='barh', ax=ax)
 ax.text(0.45, 1.1, f'Accuracy: {accuracy:.2f}', transform=ax.transAxes)
 ax.set_title('Classification Report')
 ax.set_xlim([0, 1])
-
-# Add accuracy to the plot
-
 plt.show()
 
 # Confusion Matrix with genre names

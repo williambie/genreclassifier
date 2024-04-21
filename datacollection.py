@@ -10,7 +10,7 @@ API_KEY = os.getenv("API_KEY")
 URL_BASE = "https://api.themoviedb.org/3/"
 MOVIE_LIST_ENDPOINT = f"{URL_BASE}discover/movie?api_key={API_KEY}"
 
-# Hva gjør egentlig denne?
+# Fetch the total number of pages available
 def get_total_pages():
     response = requests.get(MOVIE_LIST_ENDPOINT)
     if response.status_code == 200:
@@ -89,7 +89,7 @@ def replace_genre_ids_with_names(movie_data):
                 print(f"Warning: Genre ID {e} not found in mapping. Skipping.")
             del movie['genres']
 
-# Hva gjør denne?
+# Tries openeing the JSON file and loads the data into a variable called movies_data 
 try:
     file_path = 'test.json'
     with open(file_path, 'r') as file:
@@ -98,10 +98,9 @@ except FileNotFoundError:
     print("Error: The specified JSON file was not found.")
     exit(1)
 
-# Kan denne flyttes opp?
 replace_genre_ids_with_names(movies_data)
 
-#Hva gjør denne?
+# Tries writing the updated JSON data to the file
 try:
     output_file_path = 'test.json'
     with open(output_file_path, 'w') as file:
