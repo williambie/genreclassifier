@@ -23,7 +23,7 @@ def preprocess_text(s):
 
 df['description'] = df['description'].apply(preprocess_text)
 
-# Filter the dataframe for only Action and Drama genres
+# Filter the dataframe for only relevant genres for each iteration. We have ran the code with 2, 3, 4, 5 and all 19 genres.
 df = df[df['genre'].isin(['Action', 'Drama', 'Comedy', 'Horror', 'Animation', 'Adventure', 'Thriller', 'Romance', 'Crime', 'Science Fiction', 'Family', 'Fantasy', 'Mystery', 'Documentary', 'Western', 'War', 'Music', 'History', 'TV Movie'])]
 
 # Initialize BERT tokenizer

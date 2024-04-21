@@ -40,12 +40,8 @@ selected_genres = ['Action',
                    'TV Movie']
 data = data[data['genre'].isin(selected_genres)]
 
-# Kanskje flytte kommentaren til over funskjonen for kosistens?
+#Function to preprocess text by lowercasing, removing non-alphanumeric characters, removing stopwords, and lemmatizing.
 def preprocess_text(text):
-    """
-    Function to preprocess text by lowercasing, removing non-alphanumeric characters,
-    removing stopwords, and lemmatizing.
-    """
     # Lowercase the text
     text = text.lower()
     
